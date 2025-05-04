@@ -1,0 +1,18 @@
+# 编译文件
+*.exe
+*.dll
+*.so
+*.test
+bin/
+dist/
+test/
+
+# 依赖目录
+vendor/
+
+# 环境文件
+.env
+
+# idl 文件
+.vscode/
+.idea/
