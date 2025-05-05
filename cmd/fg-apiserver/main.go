@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+
 	"github.com/MortalSC/FastGO/cmd/fg-apiserver/app"
 
 	_ "go.uber.org/automaxprocs" // 自动设置最大可用的 CPU 核心数
