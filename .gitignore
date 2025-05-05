@@ -16,3 +16,18 @@ vendor/
 # idl 文件
 .vscode/
 .idea/
+
+# 忽略 Go 工作区
+go.work
+go.work.sum
+
+# 自定义文件
+/_output
+
+# 备份文件
+*.bat
+*~
+
+# 日志文件
+*.log
+
