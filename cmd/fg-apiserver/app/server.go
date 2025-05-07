@@ -1,6 +1,10 @@
 package app
 
 import (
+	"io"
+	"log/slog"
+	"os"
+
 	"github.com/MortalSC/FastGO/cmd/fg-apiserver/app/options"
 	"github.com/MortalSC/FastGO/pkg/version"
 	"github.com/spf13/cobra"
@@ -19,7 +23,7 @@ func NewFastG0Command() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "fg-apiserver",
 		Short: "A very lightweight ful1 go project",
-		Long:  "A very lightweight full go project,designed to help beginners quickly learn Go project development.",
+		Long:  "A very lightweight full go project, designed to help beginners quickly learn Go project development.",
 
 		// Silence usage display when errors occur
 		SilenceUsage: true,
@@ -60,6 +64,9 @@ func run(opts *options.ServerOptions) error {
 	// if has --version flag, print version and exit
 	version.PrintAndExitIfRequested()
 
+	//
+	initLog()
+
 	if err := viper.Unmarshal(opts); err != nil {
 		return err
 	}
@@ -79,4 +86,62 @@ func run(opts *options.ServerOptions) error {
 	}
 
 	return server.Run()
+}
+
+// initLog initializes the logging system
+func initLog() {
+	// Get the log configuration from viper
+	format := viper.GetString("log.format")
+	level := viper.GetString("log.level")
+	output := viper.GetString("log.output")
+
+	// Conversion the log
+	var slevel slog.Level
+	switch level {
+	case "debug":
+		slevel = slog.LevelDebug
+	case "info":
+		slevel = slog.LevelInfo
+	case "warn":
+		slevel = slog.LevelWarn
+	case "error":
+		slevel = slog.LevelError
+	default:
+		slevel = slog.LevelInfo
+	}
+
+	opts := &slog.HandlerOptions{
+		Level: slevel,
+	}
+
+	var w io.Writer
+	var err error
+	// Conversion the log output path
+	switch output {
+	case "", "stdout":
+		w = os.Stdout
+	default:
+		w, err = os.OpenFile(output, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	// Conversion the log format
+	if err != nil {
+		return
+	}
+
+	var handler slog.Handler
+	switch format {
+	case "json":
+		handler = slog.NewJSONHandler(w, opts)
+	case "text":
+		handler = slog.NewTextHandler(w, opts)
+	default:
+		handler = slog.NewTextHandler(w, opts)
+	}
+
+	// Set the global log instance as a custom log instance
+	slog.SetDefault(slog.New(handler))
 }

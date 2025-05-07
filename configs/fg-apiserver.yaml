@@ -1,0 +1,14 @@
+# mysql:
+#   addr: 127.0.0.1:3306
+#   username: fastgo
+#   password: xxxxxxxxxx
+#   database: fastgo
+#   max-idle-connections: 100
+#   max-open-connections: 100
+#   max-connection-life-time: 10s
+
+log:
+  format: test
+  level: info
+  # output: stdout
+  output: fastgo.log
