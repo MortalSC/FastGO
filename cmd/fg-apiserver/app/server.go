@@ -2,6 +2,7 @@ package app
 
 import (
 	"github.com/MortalSC/FastGO/cmd/fg-apiserver/app/options"
+	"github.com/MortalSC/FastGO/pkg/version"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -44,15 +45,21 @@ func NewFastG0Command() *cobra.Command {
 		"Path to config file in YAML/JSON format", // Description
 	)
 
+	// Add --version flag to display version information
+	version.AddFlags(cmd.PersistentFlags())
+
 	return cmd
 }
 
 // run executes the main application workflow:
-// 1. Config unmarshalling
-// 2. Config validation
-// 3. Server construction
-// 4. Server execution
+// Config unmarshalling
+// Config validation
+// Server construction
+// Server execution
 func run(opts *options.ServerOptions) error {
+	// if has --version flag, print version and exit
+	version.PrintAndExitIfRequested()
+
 	if err := viper.Unmarshal(opts); err != nil {
 		return err
 	}
