@@ -1,6 +1,10 @@
 package options
 
 import (
+	"fmt"
+	"net"
+	"strconv"
+
 	"github.com/MortalSC/FastGO/internal/apiserver"
 	genericoptions "github.com/MortalSC/FastGO/pkg/options"
 )
@@ -10,6 +14,7 @@ import (
 // Supports both JSON serialization and configuration file parsing via mapstructure
 type ServerOptions struct {
 	MySQLOptions *genericoptions.MySQLOptions `json:"mysql" mapstructure:"mysql"`
+	Addr         string                       `json:"addr" mapstructure:"addr"`
 }
 
 // NewServerOptions creates a ServerOptions instance with default values
@@ -19,6 +24,7 @@ type ServerOptions struct {
 func NewServerOptions() *ServerOptions {
 	return &ServerOptions{
 		MySQLOptions: genericoptions.NewMySQLOptions(),
+		Addr:         "0.0.0.0:6666",
 	}
 }
 
@@ -31,6 +37,23 @@ func (s *ServerOptions) Validate() error {
 		return err
 	}
 
+	// Validate server address
+	if s.Addr == "" {
+		return fmt.Errorf("server address cannot be empty")
+	}
+
+	// check the address format "host:port"
+	_, portStr, err := net.SplitHostPort(s.Addr)
+	if err != nil {
+		return fmt.Errorf("invalid server address format %s: %v", s.Addr, err)
+	}
+
+	// check if port is a valid number [1, 65535]
+	port, err := strconv.Atoi(portStr)
+	if err != nil || port < 1 || port > 65535 {
+		return fmt.Errorf("invalid port number %s: %v", portStr, err)
+	}
+
 	return nil
 }
 
@@ -41,5 +64,6 @@ func (s *ServerOptions) Validate() error {
 func (s *ServerOptions) Config() (*apiserver.Config, error) {
 	return &apiserver.Config{
 		MySQLOptions: s.MySQLOptions,
+		Addr:         s.Addr,
 	}, nil
 }
