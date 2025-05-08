@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 
+	middleware "github.com/MortalSC/FastGO/pkg/middleware"
 	genericoptions "github.com/MortalSC/FastGO/pkg/options"
 	"github.com/gin-gonic/gin"
 )
@@ -22,6 +23,14 @@ type Server struct {
 func (cfg *Config) NewServer() (*Server, error) {
 	// Create gin engine
 	engine := gin.New()
+
+	middlewares := []gin.HandlerFunc{
+		gin.Recovery(),
+		middleware.NoCache,
+		middleware.Cors,
+		middleware.RequestID(),
+	}
+	engine.Use(middlewares...)
 
 	// register 404 handler
 	engine.NoRoute(func(c *gin.Context) {
