@@ -1,8 +1,8 @@
 package middleware
 
 import (
-	"github.com/MortalSC/FastGO/pkg/contextx"
-	"github.com/MortalSC/FastGO/pkg/known"
+	"github.com/MortalSC/FastGO/internal/pkg/contextx"
+	"github.com/MortalSC/FastGO/internal/pkg/known"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )

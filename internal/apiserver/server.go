@@ -10,7 +10,7 @@ import (
 	"syscall"
 	"time"
 
-	middleware "github.com/MortalSC/FastGO/pkg/middleware"
+	middleware "github.com/MortalSC/FastGO/internal/pkg/middleware"
 	genericoptions "github.com/MortalSC/FastGO/pkg/options"
 	"github.com/gin-gonic/gin"
 )
