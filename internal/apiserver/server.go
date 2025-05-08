@@ -10,6 +10,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/MortalSC/FastGO/internal/pkg/core"
+	"github.com/MortalSC/FastGO/internal/pkg/errorx"
 	middleware "github.com/MortalSC/FastGO/internal/pkg/middleware"
 	genericoptions "github.com/MortalSC/FastGO/pkg/options"
 	"github.com/gin-gonic/gin"
@@ -39,15 +41,12 @@ func (cfg *Config) NewServer() (*Server, error) {
 
 	// register 404 handler
 	engine.NoRoute(func(c *gin.Context) {
-		c.JSON(http.StatusNotFound, gin.H{
-			"code":    "PageNotFound",
-			"message": "Page not found",
-		})
+		core.WriteResponse(c, errorx.ErrNotFound.WithMessage("Page not found"), nil)
 	})
 
 	// register /healthz handler
 	engine.GET("/healthz", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
+		core.WriteResponse(c, nil, map[string]string{
 			"status": "ok",
 		})
 	})
