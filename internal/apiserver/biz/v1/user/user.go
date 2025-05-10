@@ -10,8 +10,11 @@ import (
 	"github.com/MortalSC/FastGO/internal/commonpkg/where"
 	"github.com/MortalSC/FastGO/internal/pkg/contextx"
 	"github.com/MortalSC/FastGO/internal/pkg/conversion"
+	"github.com/MortalSC/FastGO/internal/pkg/errorx"
 	"github.com/MortalSC/FastGO/internal/pkg/known"
 	apiv1 "github.com/MortalSC/FastGO/pkg/api/apiserver/v1"
+	"github.com/MortalSC/FastGO/pkg/auth"
+	"github.com/MortalSC/FastGO/pkg/token"
 	"github.com/jinzhu/copier"
 	"golang.org/x/sync/errgroup"
 )
@@ -27,7 +30,11 @@ type UserBiz interface {
 }
 
 // UserExpansion is an interface that defines additional methods for the UserBiz
-type UserExpansion interface{}
+type UserExpansion interface {
+	Login(ctx context.Context, req *apiv1.LoginRequest) (*apiv1.LoginResponse, error)
+	RefreshToken(ctx context.Context, req *apiv1.RefreshTokenRequest) (*apiv1.RefreshTokenResponse, error)
+	ChangePassword(ctx context.Context, req *apiv1.ChangePasswordRequest) (*apiv1.ChangePasswordResponse, error)
+}
 
 type userBiz struct {
 	store store.IStore
@@ -147,4 +154,58 @@ func (b *userBiz) List(ctx context.Context, req *apiv1.ListUserRequest) (*apiv1.
 		Total: count,
 		Users: users,
 	}, nil
+}
+
+func (b *userBiz) Login(ctx context.Context, req *apiv1.LoginRequest) (*apiv1.LoginResponse, error) {
+	whr := where.F("username", req.Username)
+	userM, err := b.store.User().Get(ctx, whr)
+	if err != nil {
+		return nil, errorx.ErrUserNotFound
+	}
+
+	if err := auth.Compare(userM.Password, req.Password); err != nil {
+		return nil, errorx.ErrInvalidPassword
+	}
+
+	tokenStr, expireAt, err := token.Sign(userM.UserID)
+	if err != nil {
+		slog.ErrorContext(ctx, "Failed to sign token", "err", err)
+		return nil, errorx.ErrSignToken
+	}
+
+	return &apiv1.LoginResponse{
+		Token:    tokenStr,
+		ExpireAt: expireAt,
+	}, nil
+}
+
+// RefreshToken refreshes or create the token for the user
+func (b *userBiz) RefreshToken(ctx context.Context, req *apiv1.RefreshTokenRequest) (*apiv1.RefreshTokenResponse, error) {
+	tokenStr, expireAt, err := token.Sign(contextx.UserID(ctx))
+	if err != nil {
+		return nil, errorx.ErrSignToken.WithMessage(err.Error())
+	}
+	return &apiv1.RefreshTokenResponse{
+		Token:    tokenStr,
+		ExpireAt: expireAt,
+	}, nil
+}
+
+func (b *userBiz) ChangePassword(ctx context.Context, req *apiv1.ChangePasswordRequest) (*apiv1.ChangePasswordResponse, error) {
+	userM, err := b.store.User().Get(ctx, where.F("user_id", contextx.UserID(ctx)))
+	if err != nil {
+		return nil, err
+	}
+
+	if err := auth.Compare(userM.Password, req.OldPassword); err != nil {
+		slog.ErrorContext(ctx, "Failed to compare password", "err", err)
+		return nil, errorx.ErrInvalidPassword
+	}
+
+	userM.Password, _ = auth.Encrypt(req.NewPassword)
+	if err := b.store.User().Update(ctx, userM); err != nil {
+		return nil, err
+	}
+
+	return &apiv1.ChangePasswordResponse{}, nil
 }

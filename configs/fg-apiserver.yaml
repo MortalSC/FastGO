@@ -12,3 +12,7 @@ log:
   level: info
   # output: stdout
   output: fastgo.log
+
+
+jwt-key: Rtg8BPKNEf2mB4mgvKONGPZZQSaJWNLijxR42qRgq0iBb5
+expiration: 1000h

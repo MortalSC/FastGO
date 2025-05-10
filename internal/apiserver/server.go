@@ -15,15 +15,19 @@ import (
 	"github.com/MortalSC/FastGO/internal/apiserver/store"
 	"github.com/MortalSC/FastGO/internal/pkg/core"
 	"github.com/MortalSC/FastGO/internal/pkg/errorx"
+	"github.com/MortalSC/FastGO/internal/pkg/known"
 	middleware "github.com/MortalSC/FastGO/internal/pkg/middleware"
 	"github.com/MortalSC/FastGO/internal/pkg/validation"
 	genericoptions "github.com/MortalSC/FastGO/pkg/options"
+	"github.com/MortalSC/FastGO/pkg/token"
 	"github.com/gin-gonic/gin"
 )
 
 type Config struct {
 	MySQLOptions *genericoptions.MySQLOptions
 	Addr         string
+	JWTKey       string
+	ExpiraTime   time.Duration
 }
 
 type Server struct {
@@ -32,6 +36,8 @@ type Server struct {
 }
 
 func (cfg *Config) NewServer() (*Server, error) {
+	token.Init(cfg.JWTKey, known.XUserID, cfg.ExpiraTime)
+
 	// Create gin engine
 	engine := gin.New()
 
@@ -122,18 +128,25 @@ func (cfg *Config) InstallRESTAPI(engine *gin.Engine, store store.IStore) {
 
 	handler := handler.NewHandler(biz.NewBiz(store), validation.NewValidation(store))
 
-	authMiddleware := []gin.HandlerFunc{}
+	engine.POST("/login", handler.Login)
+	engine.POST("/refresh-token", middleware.Authn(), handler.RefreshToken)
+
+	authMiddleware := []gin.HandlerFunc{
+		middleware.Authn(),
+	}
 
 	// Register the V1 API routes
-	v1 := engine.Group("/v1")
+	v1 := engine.Group("/api/v1")
 	{
 		userv1 := v1.Group("/user")
 		{
 			userv1.POST("", handler.CreateUser)
+			userv1.Use(authMiddleware...)
 			userv1.PUT(":user_id", handler.UpdateUser)
 			userv1.DELETE(":user_id", handler.DeleteUser)
 			userv1.GET(":user_id", handler.GetUser)
 			userv1.GET("", handler.ListUsers)
+			userv1.PUT(":user_id/change-password", handler.ChangePassword)
 		}
 
 		postv1 := v1.Group("/post", authMiddleware...)

@@ -9,6 +9,75 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+func (h *Handler) Login(c *gin.Context) {
+	slog.Info("Login function called")
+
+	var req v1.LoginRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		core.WriteResponse(c, nil, errorx.ErrBind)
+		return
+	}
+
+	if err := h.val.ValidateLoginRequest(c.Request.Context(), &req); err != nil {
+		core.WriteResponse(c, nil, errorx.ErrInvalidArgument.WithMessage(err.Error()))
+		return
+	}
+
+	resp, err := h.biz.UserV1().Login(c.Request.Context(), &req)
+	if err != nil {
+		core.WriteResponse(c, nil, err)
+		return
+	}
+
+	core.WriteResponse(c, resp, nil)
+}
+
+func (h *Handler) RefreshToken(c *gin.Context) {
+	slog.Info("Refresh token function called")
+
+	var req v1.RefreshTokenRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		core.WriteResponse(c, nil, errorx.ErrBind)
+		return
+	}
+
+	if err := h.val.ValidateRefreshTokenRequest(c.Request.Context(), &req); err != nil {
+		core.WriteResponse(c, nil, errorx.ErrInvalidArgument.WithMessage(err.Error()))
+		return
+	}
+
+	resp, err := h.biz.UserV1().RefreshToken(c.Request.Context(), &req)
+	if err != nil {
+		core.WriteResponse(c, nil, err)
+		return
+	}
+
+	core.WriteResponse(c, resp, nil)
+}
+
+func (h *Handler) ChangePassword(c *gin.Context) {
+	slog.Info("Change password function called")
+
+	var req v1.ChangePasswordRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		core.WriteResponse(c, nil, errorx.ErrBind)
+		return
+	}
+
+	if err := h.val.ValidateChangePasswordRequest(c.Request.Context(), &req); err != nil {
+		core.WriteResponse(c, nil, errorx.ErrInvalidArgument.WithMessage(err.Error()))
+		return
+	}
+
+	resp, err := h.biz.UserV1().ChangePassword(c.Request.Context(), &req)
+	if err != nil {
+		core.WriteResponse(c, nil, err)
+		return
+	}
+
+	core.WriteResponse(c, resp, nil)
+}
+
 func (h *Handler) CreateUser(c *gin.Context) {
 	slog.Info("Create user function called")
 

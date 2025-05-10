@@ -3,6 +3,9 @@ package known
 const (
 	// XRequestID is the header key for request ID
 	XRequestID = "x-request-id"
+
+	// XUserID is the header key for user ID
+	XUserID = "x-user-id"
 )
 
 const (

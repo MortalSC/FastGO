@@ -55,3 +55,29 @@ type ListUserResponse struct {
 	Total int64   `json:"total"`
 	Users []*User `json:"users"`
 }
+
+// ====== login with token ========
+
+type LoginRequest struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
+type LoginResponse struct {
+	Token    string    `json:"token"`
+	ExpireAt time.Time `json:"expire_at"`
+}
+
+type RefreshTokenRequest struct{}
+
+type RefreshTokenResponse struct {
+	Token    string    `json:"token"`
+	ExpireAt time.Time `json:"expire_at"`
+}
+
+type ChangePasswordRequest struct {
+	OldPassword string `json:"old_password"`
+	NewPassword string `json:"new_password"`
+}
+
+type ChangePasswordResponse struct{}

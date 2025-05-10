@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"strconv"
+	"time"
 
 	"github.com/MortalSC/FastGO/internal/apiserver"
 	genericoptions "github.com/MortalSC/FastGO/pkg/options"
@@ -15,6 +16,11 @@ import (
 type ServerOptions struct {
 	MySQLOptions *genericoptions.MySQLOptions `json:"mysql" mapstructure:"mysql"`
 	Addr         string                       `json:"addr" mapstructure:"addr"`
+
+	// JWTKey is the key used to sign JWT tokens
+	JWTKey string `json:"jwt_key" mapstructure:"jwt_key"`
+	// JWTExpire is the expiration time for JWT tokens
+	Expiration time.Duration `json:"expiration" mapstructure:"expiration"`
 }
 
 // NewServerOptions creates a ServerOptions instance with default values
@@ -25,6 +31,7 @@ func NewServerOptions() *ServerOptions {
 	return &ServerOptions{
 		MySQLOptions: genericoptions.NewMySQLOptions(),
 		Addr:         "0.0.0.0:6666",
+		Expiration:   2 * time.Hour,
 	}
 }
 
@@ -54,6 +61,11 @@ func (s *ServerOptions) Validate() error {
 		return fmt.Errorf("invalid port number %s: %v", portStr, err)
 	}
 
+	// Validate JWT key
+	if len(s.JWTKey) < 6 {
+		return fmt.Errorf("JWT key must be at least 6 characters long")
+	}
+
 	return nil
 }
 
@@ -65,5 +77,7 @@ func (s *ServerOptions) Config() (*apiserver.Config, error) {
 	return &apiserver.Config{
 		MySQLOptions: s.MySQLOptions,
 		Addr:         s.Addr,
+		JWTKey:       s.JWTKey,
+		ExpiraTime:   s.Expiration,
 	}, nil
 }
