@@ -1,8 +1,8 @@
 package model
 
 import (
-	"github.com/MortalSC/FastGO/internal/commonpkg/authn"
 	"github.com/MortalSC/FastGO/internal/pkg/rid"
+	"github.com/MortalSC/FastGO/pkg/auth"
 	"gorm.io/gorm"
 )
 
@@ -18,7 +18,7 @@ func (m *Post) AfterCreate(tx *gorm.DB) error {
 // BeforeCreate
 func (m *User) BeforeCreate(tx *gorm.DB) error {
 	var err error
-	m.Password, err = authn.Encrypt(m.Password)
+	m.Password, err = auth.Encrypt(m.Password)
 	if err != nil {
 		return err
 	}

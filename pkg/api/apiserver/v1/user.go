@@ -38,7 +38,9 @@ type DeleteUserRequest struct{}
 
 type DeleteUserResponse struct{}
 
-type GetUserRequest struct{}
+type GetUserRequest struct {
+	UserID string `json:"user_id"`
+}
 
 type GetUserResponse struct {
 	User *User `json:"user"`

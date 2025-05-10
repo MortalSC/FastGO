@@ -12,7 +12,7 @@ type ErrorResponse struct {
 	Message string `json:"message,omitempty"`
 }
 
-func WriteResponse(c *gin.Context, err error, data any) {
+func WriteResponse(c *gin.Context, data any, err error) {
 	if err != nil {
 		errx := errorx.FromError(err) // error -> *errorx.ErrorX
 		c.JSON(http.StatusInternalServerError, ErrorResponse{

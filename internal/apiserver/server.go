@@ -10,9 +10,13 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/MortalSC/FastGO/internal/apiserver/biz"
+	"github.com/MortalSC/FastGO/internal/apiserver/handler"
+	"github.com/MortalSC/FastGO/internal/apiserver/store"
 	"github.com/MortalSC/FastGO/internal/pkg/core"
 	"github.com/MortalSC/FastGO/internal/pkg/errorx"
 	middleware "github.com/MortalSC/FastGO/internal/pkg/middleware"
+	"github.com/MortalSC/FastGO/internal/pkg/validation"
 	genericoptions "github.com/MortalSC/FastGO/pkg/options"
 	"github.com/gin-gonic/gin"
 )
@@ -39,17 +43,14 @@ func (cfg *Config) NewServer() (*Server, error) {
 	}
 	engine.Use(middlewares...)
 
-	// register 404 handler
-	engine.NoRoute(func(c *gin.Context) {
-		core.WriteResponse(c, errorx.ErrNotFound.WithMessage("Page not found"), nil)
-	})
+	// Initialize database connection
+	db, err := cfg.MySQLOptions.NewDB()
+	if err != nil {
+		return nil, err
+	}
+	store := store.NewStore(db)
 
-	// register /healthz handler
-	engine.GET("/healthz", func(c *gin.Context) {
-		core.WriteResponse(c, nil, map[string]string{
-			"status": "ok",
-		})
-	})
+	cfg.InstallRESTAPI(engine, store)
 
 	// create HTTP server instance
 	httpSrv := &http.Server{
@@ -99,4 +100,49 @@ func (s *Server) Run() error {
 	slog.Info("Server exited")
 
 	return nil
+}
+
+func (cfg *Config) InstallRESTAPI(engine *gin.Engine, store store.IStore) {
+
+	// ====== test api start ======
+
+	// register 404 handler
+	engine.NoRoute(func(c *gin.Context) {
+		core.WriteResponse(c, errorx.ErrNotFound.WithMessage("Page not found"), nil)
+	})
+
+	// register /healthz handler
+	engine.GET("/healthz", func(c *gin.Context) {
+		core.WriteResponse(c, map[string]string{
+			"status": "ok",
+		}, nil)
+	})
+
+	// ====== test api end ======
+
+	handler := handler.NewHandler(biz.NewBiz(store), validation.NewValidation(store))
+
+	authMiddleware := []gin.HandlerFunc{}
+
+	// Register the V1 API routes
+	v1 := engine.Group("/v1")
+	{
+		userv1 := v1.Group("/user")
+		{
+			userv1.POST("", handler.CreateUser)
+			userv1.PUT(":user_id", handler.UpdateUser)
+			userv1.DELETE(":user_id", handler.DeleteUser)
+			userv1.GET(":user_id", handler.GetUser)
+			userv1.GET("", handler.ListUsers)
+		}
+
+		postv1 := v1.Group("/post", authMiddleware...)
+		{
+			postv1.POST("", handler.CreatePost)
+			postv1.PUT(":post_id", handler.UpdatePost)
+			postv1.DELETE(":post_id", handler.DeletePost)
+			postv1.GET(":post_id", handler.GetPost)
+			postv1.GET("", handler.ListPosts)
+		}
+	}
 }
