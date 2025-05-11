@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"log/slog"
 
 	"github.com/MortalSC/FastGO/internal/pkg/core"
@@ -128,7 +129,7 @@ func (h *Handler) DeleteUser(c *gin.Context) {
 	slog.Info("Delete user function called")
 
 	var req v1.DeleteUserRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
+	if err := c.ShouldBindUri(&req); err != nil {
 		core.WriteResponse(c, nil, errorx.ErrBind)
 		return
 	}
@@ -149,12 +150,22 @@ func (h *Handler) DeleteUser(c *gin.Context) {
 
 func (h *Handler) GetUser(c *gin.Context) {
 	slog.Info("Get user function called")
+	fmt.Println("Get user function called")
+
+	userID := c.Param("user_id")
+	if userID == "" {
+		core.WriteResponse(c, nil, errorx.ErrInvalidArgument.WithMessage("user_id is required"))
+		return
+	}
+	fmt.Printf("UserID: %s, Type: %T\n", userID, userID)
 
 	var req v1.GetUserRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
+	if err := c.ShouldBindUri(&req); err != nil {
 		core.WriteResponse(c, nil, errorx.ErrBind)
 		return
 	}
+
+	fmt.Println("Get user function called 2")
 
 	if err := h.val.ValidateGetUserRequest(c.Request.Context(), &req); err != nil {
 		core.WriteResponse(c, nil, errorx.ErrInvalidArgument.WithMessage(err.Error()))
@@ -174,7 +185,7 @@ func (h *Handler) ListUsers(c *gin.Context) {
 	slog.Info("List users function called")
 
 	var req v1.ListUserRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
+	if err := c.ShouldBindQuery(&req); err != nil {
 		core.WriteResponse(c, nil, errorx.ErrBind)
 		return
 	}

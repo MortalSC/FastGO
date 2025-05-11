@@ -62,7 +62,7 @@ func (b *userBiz) Create(ctx context.Context, req *apiv1.CreateUserRequest) (*ap
 }
 
 func (b *userBiz) Update(ctx context.Context, req *apiv1.UpdateUserRequest) (*apiv1.UpdateUserResponse, error) {
-	userM, err := b.store.User().Get(ctx, where.F("user_id", contextx.UserID(ctx)))
+	userM, err := b.store.User().Get(ctx, where.F("userID", contextx.UserID(ctx)))
 	if err != nil {
 		return nil, err
 	}
@@ -88,14 +88,14 @@ func (b *userBiz) Update(ctx context.Context, req *apiv1.UpdateUserRequest) (*ap
 }
 
 func (b *userBiz) Delete(ctx context.Context, req *apiv1.DeleteUserRequest) (*apiv1.DeleteUserResponse, error) {
-	if err := b.store.User().Delete(ctx, where.F("user_id", contextx.UserID(ctx))); err != nil {
+	if err := b.store.User().Delete(ctx, where.F("userID", contextx.UserID(ctx))); err != nil {
 		return nil, err
 	}
 	return &apiv1.DeleteUserResponse{}, nil
 }
 
 func (b *userBiz) Get(ctx context.Context, req *apiv1.GetUserRequest) (*apiv1.GetUserResponse, error) {
-	userM, err := b.store.User().Get(ctx, where.F("user_id", contextx.UserID(ctx)))
+	userM, err := b.store.User().Get(ctx, where.F("userID", contextx.UserID(ctx)))
 	if err != nil {
 		return nil, err
 	}
@@ -123,7 +123,7 @@ func (b *userBiz) List(ctx context.Context, req *apiv1.ListUserRequest) (*apiv1.
 			case <-ctx.Done():
 				return nil
 			default:
-				count, _, err := b.store.User().List(ctx, where.F("user_id", user.UserID))
+				count, _, err := b.store.Post().List(ctx, where.F("userID", contextx.UserID(ctx)))
 				if err != nil {
 					return err
 				}
@@ -145,7 +145,7 @@ func (b *userBiz) List(ctx context.Context, req *apiv1.ListUserRequest) (*apiv1.
 	users := make([]*apiv1.User, 0, len(userList))
 	for _, item := range userList {
 		user, _ := m.Load(item.ID)
-		user = append(users, user.(*apiv1.User))
+		users = append(users, user.(*apiv1.User))
 	}
 
 	slog.DebugContext(ctx, "Get users from backend storage", "count", len(users))
@@ -192,7 +192,7 @@ func (b *userBiz) RefreshToken(ctx context.Context, req *apiv1.RefreshTokenReque
 }
 
 func (b *userBiz) ChangePassword(ctx context.Context, req *apiv1.ChangePasswordRequest) (*apiv1.ChangePasswordResponse, error) {
-	userM, err := b.store.User().Get(ctx, where.F("user_id", contextx.UserID(ctx)))
+	userM, err := b.store.User().Get(ctx, where.F("userID", contextx.UserID(ctx)))
 	if err != nil {
 		return nil, err
 	}

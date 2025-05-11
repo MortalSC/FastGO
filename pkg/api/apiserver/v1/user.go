@@ -47,8 +47,10 @@ type GetUserResponse struct {
 }
 
 type ListUserRequest struct {
-	Limit  int64 `json:"limit"`
-	Offset int64 `json:"offset"`
+	// Limit  int64 `json:"limit"`
+	// Offset int64 `json:"offset"`
+	Limit  int64 `form:"limit"`
+	Offset int64 `form:"offset"`
 }
 
 type ListUserResponse struct {

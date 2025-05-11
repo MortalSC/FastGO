@@ -52,7 +52,7 @@ func (b *postBiz) Create(ctx context.Context, req *apiv1.CreatePostRequest) (*ap
 }
 
 func (b *postBiz) Update(ctx context.Context, req *apiv1.UpdatePostRequest) (*apiv1.UpdatePostResponse, error) {
-	whr := where.F("user_id", contextx.UserID(ctx), "post_id", req.PostID)
+	whr := where.F("userID", contextx.UserID(ctx), "postID", req.PostID)
 	postM, err := b.store.Post().Get(ctx, whr)
 	if err != nil {
 		return nil, err
@@ -74,7 +74,7 @@ func (b *postBiz) Update(ctx context.Context, req *apiv1.UpdatePostRequest) (*ap
 }
 
 func (b *postBiz) Delete(ctx context.Context, req *apiv1.DeletePostRequest) (*apiv1.DeletePostResponse, error) {
-	whr := where.F("user_id", contextx.UserID(ctx), "post_id", req.PostID)
+	whr := where.F("userID", contextx.UserID(ctx), "postID", req.PostID)
 	if err := b.store.Post().Delete(ctx, whr); err != nil {
 		return nil, err
 	}
@@ -83,7 +83,7 @@ func (b *postBiz) Delete(ctx context.Context, req *apiv1.DeletePostRequest) (*ap
 }
 
 func (b *postBiz) Get(ctx context.Context, req *apiv1.GetPostRequest) (*apiv1.GetPostResponse, error) {
-	whr := where.F("user_id", contextx.UserID(ctx), "post_id", req.PostID)
+	whr := where.F("userID", contextx.UserID(ctx), "postID", req.PostID)
 	postM, err := b.store.Post().Get(ctx, whr)
 	if err != nil {
 		return nil, err
@@ -95,7 +95,7 @@ func (b *postBiz) Get(ctx context.Context, req *apiv1.GetPostRequest) (*apiv1.Ge
 }
 
 func (b *postBiz) List(ctx context.Context, req *apiv1.ListPostRequest) (*apiv1.ListPostResponse, error) {
-	whr := where.F("user_id", contextx.UserID(ctx)).P(int(req.Offset), int(req.Limit))
+	whr := where.F("userID", contextx.UserID(ctx)).P(int(req.Offset), int(req.Limit))
 	if req.Title != nil {
 		whr = whr.Q("title like ?", "%"+*req.Title+"%")
 	}
